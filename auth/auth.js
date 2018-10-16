@@ -1,22 +1,25 @@
-const express = require('express');
-const router = express.Router();
-const pg = require('../database/database_queries');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
-
-// router.post('/auth/register', async (req, res) => {
-//     res.setHeader('Content-Type', 'application/json');
-//     const user = req.body.user;
-//     if (!user) {
-//         res.send(JSON.stringify({success: false, error: 'User not provided'}));
-//         return;
-//     }
-//     user.password = await auth.hashPassword(user.password);
-//     try {
-//         const createdUser = await models.Users.create(user);
-//         const token = auth.signJWT(createdUser._id);
-//         res.send(JSON.stringify({success: true, token: token}));
-//     } catch (e) {
-//         console.log(e);
-//         res.send(JSON.stringify({success: false}));
-//     }
-// });
+const hashPassword = async (password) => {
+    return await bcrypt.hash(password, 8);
+};
+const comparePassword = async (password, hashedPassword) => {
+    return await bcrypt.compare(password, hashedPassword);
+};
+const signJWT = (userId) => {
+    return jwt.sign({id: userId}, secretKey, {
+        expiresIn: 86400 // expires in 24 hours
+    });
+};
+const verifyJWT = (token) => {
+    try {
+        return {success: true, id: jwt.verify(token, secretKey).id};
+    } catch (e) {
+        return {success: false};
+    }
+};
+module.exports.hashPassword = hashPassword;
+module.exports.comparePassword = comparePassword;
+module.exports.signJWT = signJWT;
+module.exports.verifyJWT = verifyJWT;

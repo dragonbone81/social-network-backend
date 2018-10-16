@@ -17,8 +17,10 @@
   },
   "homepage": "https://github.com/dragonbone81/social-network-backend#readme",
   "dependencies": {
+    "bcrypt": "^3.0.1",
     "body-parser": "^1.18.3",
     "express": "^4.16.4",
+    "jsonwebtoken": "^8.3.0",
     "morgan": "^1.9.1",
     "nodemon": "^1.18.4",
     "pg": "^7.5.0"
