@@ -1,22 +1,23 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const {secretKey} = require('./secrets');
 
-const hashPassword = async (password) => {
-    return await bcrypt.hash(password, 8);
+const hashPassword = (password) => {
+    return bcrypt.hash(password, 8);
 };
 const comparePassword = async (password, hashedPassword) => {
     return await bcrypt.compare(password, hashedPassword);
 };
-const signJWT = (userId) => {
-    return jwt.sign({id: userId}, secretKey, {
-        expiresIn: 86400 // expires in 24 hours
+const signJWT = (username) => {
+    return jwt.sign({username: username}, secretKey, {
+        expiresIn: 86400*31 // expires in 31 days
     });
 };
 const verifyJWT = (token) => {
     try {
-        return {success: true, id: jwt.verify(token, secretKey).id};
+        return {success: true, username: jwt.verify(token, secretKey).username};
     } catch (e) {
-        return {success: false};
+        return {error: e};
     }
 };
 module.exports.hashPassword = hashPassword;
