@@ -1,0 +1,24 @@
+{
+  "name": "social-network-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dragonbone81/social-network-backend.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dragonbone81/social-network-backend/issues"
+  },
+  "homepage": "https://github.com/dragonbone81/social-network-backend#readme",
+  "dependencies": {
+    "express": "^4.16.4",
+    "morgan": "^1.9.1",
+    "mysql": "^2.16.0"
+  }
+}
