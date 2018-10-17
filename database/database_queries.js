@@ -11,6 +11,67 @@ const create_user = async (user) => {
         return {error: err};
     }
 };
+
+const create_chat = async (chatName) => {
+    try {
+        const {rows} = await pg.query('INSERT INTO chat (chat_name) VALUES ($1) RETURNING chat_id',
+            [chatName]);
+        return ({success: "chat_created", chat_id: rows[0].chat_id})
+    } catch (err) {
+        return {error: err};
+    }
+};
+
+const add_user_to_chat = async (username, chat_id) => {
+    try {
+        await pg.query('INSERT INTO user_chat VALUES ($1, $2)',
+            [username, chat_id]);
+        return ({success: "user added to chat"})
+    } catch (err) {
+        return {error: err};
+    }
+};
+
+const get_chats_for_user = async (username) => {
+    try {
+        const {rows} = await pg.query('SELECT chat.chat_id, chat_name FROM chat, user_chat WHERE username=$1 AND user_chat.chat_id=chat.chat_id',
+            [username]);
+        return ({success: "chats for user", chats: rows})
+    } catch (err) {
+        return {error: err};
+    }
+};
+
+const get_users_in_chat = async (chat_id) => {
+    try {
+        const {rows} = await pg.query('SELECT username FROM user_chat WHERE chat_id=$1',
+            [chat_id]);
+        return ({success: "users in chat", users: rows})
+    } catch (err) {
+        return {error: err};
+    }
+};
+
+const get_messages_for_chat = async (chat_id) => {
+    try {
+        const {rows} = await pg.query('SELECT username, created_at, text, message_id FROM message WHERE chat_id=$1',
+            [chat_id]);
+        return ({success: "messages for chat", users: rows})
+    } catch (err) {
+        return {error: err};
+    }
+};
+
+const create_message = async (chat_id, username, text) => {
+    try {
+        const {rows} = await pg.query('INSERT INTO message (chat_id, username, text) VALUES ($1, $2, $3) RETURNING message_id',
+            [chat_id, username, text]);
+        return ({success: "message_created", message_id: rows[0].message_id})
+    } catch (err) {
+        return {error: err};
+    }
+};
+
 const create_user_table = async () => {
     await pg.query('DROP TABLE IF EXISTS app_user');
     await pg.query('CREATE TABLE app_user (' +
@@ -20,6 +81,32 @@ const create_user_table = async () => {
         '    lastname    VARCHAR(30),' +
         '    email       VARCHAR(40),' +
         '    created_at  TIMESTAMP DEFAULT NOW()' +
+        ');');
+};
+const create_UserChat_table = async () => {
+    await pg.query('DROP TABLE IF EXISTS user_chat');
+    await pg.query('CREATE TABLE user_chat (' +
+        '    username    VARCHAR(40) NOT NULL,' +
+        '    chat_id     INT NOT NULL,' +
+        '    PRIMARY KEY (chat_id, username)' +
+        ');');
+};
+const create_message_table = async () => {
+    await pg.query('DROP TABLE IF EXISTS message');
+    await pg.query('CREATE TABLE message (' +
+        '    username    VARCHAR(40) NOT NULL,' +
+        '    chat_id     INT NOT NULL,' +
+        '    message_id  SERIAL,' +
+        '    text        TEXT,' +
+        '    created_at  TIMESTAMP DEFAULT NOW(),' +
+        '    PRIMARY KEY (username, chat_id, message_id)' +
+        ');');
+};
+const create_chat_table = async () => {
+    await pg.query('DROP TABLE IF EXISTS chat');
+    await pg.query('CREATE TABLE chat (' +
+        '    chat_id     SERIAL PRIMARY KEY,' +
+        '    chat_name   VARCHAR(60)' +
         ');');
 };
 const get_user_password = async (username) => {
@@ -66,7 +153,16 @@ const get_users = async (params) => {
 };
 
 module.exports.create_user = create_user;
+module.exports.create_chat = create_chat;
+module.exports.add_user_to_chat = add_user_to_chat;
 module.exports.create_user_table = create_user_table;
+module.exports.create_UserChat_table = create_UserChat_table;
+module.exports.create_chat_table = create_chat_table;
+module.exports.create_message_table = create_message_table;
+module.exports.create_message = create_message;
+module.exports.get_messages_for_chat = get_messages_for_chat;
 module.exports.get_users = get_users;
 module.exports.get_user_password = get_user_password;
 module.exports.get_user = get_user;
+module.exports.get_chats_for_user = get_chats_for_user;
+module.exports.get_users_in_chat = get_users_in_chat;
