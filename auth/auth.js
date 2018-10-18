@@ -10,7 +10,7 @@ const comparePassword = async (password, hashedPassword) => {
 };
 const signJWT = (username) => {
     return jwt.sign({username: username}, secretKey, {
-        expiresIn: 86400*31 // expires in 31 days
+        expiresIn: 86400*31*12*5 // expires in 5 years
     });
 };
 const verifyJWT = (token) => {
