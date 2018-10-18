@@ -25,8 +25,9 @@ app.get('/', async (req, res) => {
     // pg.add_user_to_chat('cvernikoff2', 3);
     console.log(await pg.get_users_in_chat(3));
     // console.log(await pg.create_message(3, 'cvernikoff2', 'this is message4'));
-    console.log(await pg.get_messages_for_chat(3));
-    res.send(await pg.get_messages_for_chat(3));
+    // console.log(await pg.get_messages_for_chat(3));
+    // res.send(await pg.get_messages_for_chat(3));
+    res.send({hello: 'hi'})
 });
 
 app.listen(port, () => console.log("Server Started!"));

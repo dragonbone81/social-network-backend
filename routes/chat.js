@@ -3,7 +3,7 @@ const pg = require('../database/database_queries');
 const router = express.Router();
 const checkJWT = require('../middleware/checkJWT');
 
-router.get('/chat/user', checkJWT, async (req, res) => {
+router.get('/chats/user', checkJWT, async (req, res) => {
     res.setHeader('Content-Type', 'application/json');
     const dbLookupChats = await pg.get_chats_for_user(req.username);
     if (dbLookupChats.success) {
@@ -14,7 +14,7 @@ router.get('/chat/user', checkJWT, async (req, res) => {
     }
 });
 
-router.get('/messages/:chat_id', checkJWT, async (req, res) => {
+router.get('/chats/messages/:chat_id', checkJWT, async (req, res) => {
     res.setHeader('Content-Type', 'application/json');
     const dbLookupMessages = await pg.get_messages_for_chat(req.params.chat_id, req.username);
     if (dbLookupMessages.success) {
@@ -22,6 +22,16 @@ router.get('/messages/:chat_id', checkJWT, async (req, res) => {
     } else {
         res.status(400);
         res.send(dbLookupMessages);
+    }
+});
+router.get('/chats/users/:chat_id', checkJWT, async (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    const dbLookupUsers = await pg.get_users_in_chat(req.params.chat_id, req.username);
+    if (dbLookupUsers.success) {
+        res.send(dbLookupUsers.users);
+    } else {
+        res.status(400);
+        res.send(dbLookupUsers);
     }
 });
 
