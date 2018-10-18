@@ -23,10 +23,11 @@ app.get('/', async (req, res) => {
     // const chat_id = await pg.create_chat("new_chat");
     // console.log(chat_id);
     // pg.add_user_to_chat('cvernikoff2', 3);
-    console.log(await pg.get_users_in_chat(3));
+    // console.log(await pg.get_users_in_chat(3));
     // console.log(await pg.create_message(3, 'cvernikoff2', 'this is message4'));
     // console.log(await pg.get_messages_for_chat(3));
     // res.send(await pg.get_messages_for_chat(3));
+    console.log(await pg.check_for_users(['cvernikoff2', 'cvernikoff1']));
     res.send({hello: 'hi'})
 });
 

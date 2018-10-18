@@ -12,6 +12,19 @@ const create_user = async (user) => {
     }
 };
 
+const check_for_users = async (userList) => {
+    try {
+        const {rows} = await pg.query(`SELECT username FROM app_user WHERE username IN 
+        (${userList.map((el, index) => `$${index + 1}`).join(', ')})`, userList);
+        if (userList.length === rows.length)
+            return ({success: "users_exists"});
+        else
+            return {error: "users_do_not_exist", existing_users: rows};
+    } catch (err) {
+        return {error: err};
+    }
+};
+
 const create_chat = async (chatName) => {
     try {
         const {rows} = await pg.query('INSERT INTO chat (chat_name) VALUES ($1) RETURNING chat_id',
@@ -73,7 +86,14 @@ const get_messages_for_chat = async (chat_id, username) => {
 };
 
 const create_message = async (chat_id, username, text) => {
+    //check if user in chat
     try {
+        const userCheck = await pg.query('SELECT chat_id FROM user_chat WHERE chat_id=$1 AND username=$2',
+            [chat_id, username]);
+
+        if (userCheck.rows.length !== 1) {
+            return {error: 'user_not_in_chat'};
+        }
         const {rows} = await pg.query('INSERT INTO message (chat_id, username, text) VALUES ($1, $2, $3) RETURNING message_id',
             [chat_id, username, text]);
         return ({success: "message_created", message_id: rows[0].message_id})
@@ -176,3 +196,4 @@ module.exports.get_user_password = get_user_password;
 module.exports.get_user = get_user;
 module.exports.get_chats_for_user = get_chats_for_user;
 module.exports.get_users_in_chat = get_users_in_chat;
+module.exports.check_for_users = check_for_users;

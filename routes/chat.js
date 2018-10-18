@@ -3,36 +3,78 @@ const pg = require('../database/database_queries');
 const router = express.Router();
 const checkJWT = require('../middleware/checkJWT');
 
+//get a users chats
 router.get('/chats/user', checkJWT, async (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
     const dbLookupChats = await pg.get_chats_for_user(req.username);
     if (dbLookupChats.success) {
-        res.send(dbLookupChats.chats);
+        res.json(dbLookupChats.chats);
     } else {
         res.status(400);
-        res.send(dbLookupChats);
+        res.json(dbLookupChats);
     }
 });
 
+//gets the messages of a chat (chat_id)
 router.get('/chats/messages/:chat_id', checkJWT, async (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
     const dbLookupMessages = await pg.get_messages_for_chat(req.params.chat_id, req.username);
     if (dbLookupMessages.success) {
-        res.send(dbLookupMessages.messages);
+        res.json(dbLookupMessages.messages);
     } else {
         res.status(400);
-        res.send(dbLookupMessages);
+        res.json(dbLookupMessages);
     }
 });
-router.get('/chats/users/:chat_id', checkJWT, async (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-    const dbLookupUsers = await pg.get_users_in_chat(req.params.chat_id, req.username);
-    if (dbLookupUsers.success) {
-        res.send(dbLookupUsers.users);
+
+//adds a message to a chat
+router.post('/chats/message/:chat_id', checkJWT, async (req, res) => {
+    const dbMessagePost = await pg.create_message(req.body.chat_id, req.body.username, req.body.text);
+    if (dbMessagePost.success) {
+        res.json(dbMessagePost.message_id);
     } else {
         res.status(400);
-        res.send(dbLookupUsers);
+        res.json(dbMessagePost);
     }
+});
+
+//gets the users in a chat
+router.get('/chats/users/:chat_id', checkJWT, async (req, res) => {
+    const dbLookupUsers = await pg.get_users_in_chat(req.params.chat_id, req.username);
+    if (dbLookupUsers.success) {
+        res.json(dbLookupUsers.users);
+    } else {
+        res.status(400);
+        res.json(dbLookupUsers);
+    }
+});
+
+//creates a new chat with the name and users
+router.post('/chats/new', checkJWT, async (req, res) => {
+    if (!req.body.chat_name || !req.body.chat_users) {
+        res.status(400);
+        res.json({error: 'invalid chat request'});
+        return;
+    }
+    if (!req.body.chat_users.includes(req.username)) {
+        req.body.chat_users.push(req.username);
+    }
+    const dbUserCheck = await pg.check_for_users(req.body.chat_users);
+    if (dbUserCheck.success) {
+        const dbCreateChat = await pg.create_chat(req.body.chat_name);
+        if (dbCreateChat.success) {
+            const promises = [];
+            req.body.chat_users.forEach((username) => {
+                const promise = pg.add_user_to_chat(username, dbCreateChat.chat_id);
+                promises.push(promise);
+            });
+            await Promise.all(promises);
+            res.json({success: 'chat_created', chat_id: dbCreateChat.chat_id});
+            return;
+        }
+    } else {
+        res.json({error: 'users_do_not_exists', existing_users: dbUserCheck.existing_users})
+    }
+    res.json({error: 'chat_not_created'});
+
 });
 
 module.exports = router;
