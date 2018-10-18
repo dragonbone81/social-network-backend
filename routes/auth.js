@@ -18,7 +18,14 @@ router.post('/auth/register', async (req, res) => {
         res.json(db_res);
     } else {
         const token = auth.signJWT(user.username);
-        res.json({success: 'user_created', token: token})
+        const responseUser = {
+            token,
+            username: user.username,
+            email: user.email,
+            firstname: user.firstname,
+            lastname: user.lastname
+        };
+        res.json({success: 'user_created', user: responseUser})
     }
 });
 router.post('/auth/token', async (req, res) => {
@@ -28,15 +35,22 @@ router.post('/auth/token', async (req, res) => {
         res.json({error: 'invalid token request'});
         return;
     }
-    const dbLookupUser = await pg.get_user_password(username);
+    const dbLookupUser = await pg.get_user_with_password(username);
     if (dbLookupUser.error) {
         res.status(400);
         res.json(dbLookupUser.error);
         return;
     }
-    if (await auth.comparePassword(password, dbLookupUser.password)) {
+    if (await auth.comparePassword(password, dbLookupUser.user.password)) {
         const token = auth.signJWT(username);
-        res.json({token});
+        const user = {
+            token,
+            username: dbLookupUser.user.username,
+            email: dbLookupUser.user.email,
+            firstname: dbLookupUser.user.firstname,
+            lastname: dbLookupUser.user.lastname
+        };
+        res.json({user});
     } else {
         res.status(400);
         res.json({error: 'password incorrect'});

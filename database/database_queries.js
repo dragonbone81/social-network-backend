@@ -139,13 +139,12 @@ const create_chat_table = async () => {
         '    chat_name   VARCHAR(60)' +
         ');');
 };
-const get_user_password = async (username) => {
-    const query = "SELECT password FROM app_user WHERE username=$1";
+const get_user_with_password = async (username) => {
+    const query = "SELECT username, email, firstname, lastname, password FROM app_user WHERE username=$1";
     try {
         const {rows} = await pg.query(query, [username]);
         if (rows.length === 1) {
-            const password = rows[0].password;
-            return {success: true, password: password};
+            return {success: true, user: rows[0]};
         } else {
             return {error: 'no or more than 1 rows returned'};
         }
@@ -192,7 +191,7 @@ module.exports.create_message_table = create_message_table;
 module.exports.create_message = create_message;
 module.exports.get_messages_for_chat = get_messages_for_chat;
 module.exports.get_users = get_users;
-module.exports.get_user_password = get_user_password;
+module.exports.get_user_with_password = get_user_with_password;
 module.exports.get_user = get_user;
 module.exports.get_chats_for_user = get_chats_for_user;
 module.exports.get_users_in_chat = get_users_in_chat;
