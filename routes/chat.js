@@ -14,4 +14,15 @@ router.get('/chat/user', checkJWT, async (req, res) => {
     }
 });
 
+router.get('/messages/:chat_id', checkJWT, async (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    const dbLookupMessages = await pg.get_messages_for_chat(req.params.chat_id, req.username);
+    if (dbLookupMessages.success) {
+        res.send(dbLookupMessages.messages);
+    } else {
+        res.status(400);
+        res.send(dbLookupMessages);
+    }
+});
+
 module.exports = router;

@@ -52,11 +52,17 @@ const get_users_in_chat = async (chat_id) => {
     }
 };
 
-const get_messages_for_chat = async (chat_id) => {
+const get_messages_for_chat = async (chat_id, username) => {
+    // check the user is in the chat
     try {
+        const userCheck = await pg.query('SELECT chat_id FROM user_chat WHERE chat_id=$1 AND username=$2',
+            [chat_id, username]);
+        if (userCheck.rows.length !== 1) {
+            return {error: 'user_not_in_chat'}
+        }
         const {rows} = await pg.query('SELECT username, created_at, text, message_id FROM message WHERE chat_id=$1',
             [chat_id]);
-        return ({success: "messages for chat", users: rows})
+        return ({success: "messages for chat", messages: rows})
     } catch (err) {
         return {error: err};
     }
