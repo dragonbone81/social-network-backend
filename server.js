@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const pg = require('./database/database_queries');
@@ -6,11 +7,12 @@ const userRoutes = require('./routes/user');
 const authRoutes = require('./routes/auth');
 const chatRoutes = require('./routes/chat');
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 
 app.use(morgan('short'));
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
+app.use(cors());
 app.use(userRoutes);
 app.use(authRoutes);
 app.use(chatRoutes);
