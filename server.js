@@ -29,7 +29,11 @@ app.get('/', async (req, res) => {
     // console.log(await pg.create_message(3, 'cvernikoff2', 'this is message4'));
     // console.log(await pg.get_messages_for_chat(3));
     // res.send(await pg.get_messages_for_chat(3));
-    console.log(await pg.check_for_users(['cvernikoff2', 'cvernikoff1']));
+    // console.log(await pg.check_for_users(['cvernikoff2', 'cvernikoff1']));
+    // pg.create_message_table();
+    // pg.create_chat_table();
+    // pg.create_UserChat_table();
+    // pg.create_user_table();
     res.send({hello: 'hi'})
 });
 

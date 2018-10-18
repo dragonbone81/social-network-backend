@@ -27,7 +27,7 @@ router.get('/chats/messages/:chat_id', checkJWT, async (req, res) => {
 
 //adds a message to a chat
 router.post('/chats/message/:chat_id', checkJWT, async (req, res) => {
-    const dbMessagePost = await pg.create_message(req.body.chat_id, req.body.username, req.body.text);
+    const dbMessagePost = await pg.create_message(req.params.chat_id, req.username, req.body.text);
     if (dbMessagePost.success) {
         res.json(dbMessagePost.message_id);
     } else {
@@ -74,7 +74,6 @@ router.post('/chats/new', checkJWT, async (req, res) => {
         res.json({error: 'users_do_not_exists', existing_users: dbUserCheck.existing_users})
     }
     res.json({error: 'chat_not_created'});
-
 });
 
 module.exports = router;
