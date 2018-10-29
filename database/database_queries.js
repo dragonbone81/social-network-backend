@@ -165,16 +165,10 @@ const get_user = async (username) => {
         return {error: err};
     }
 };
-const get_users = async (params) => {
-    let query = "SELECT username, email, firstname, lastname FROM app_user";
-    if (Object.keys(params).length > 0) {
-        query += " WHERE";
-        if ('username' in params) {
-            query += " username LIKE $1"
-        }
-    }
+const get_users = async (queryItem) => {
+    let query = "SELECT username, firstname, lastname FROM app_user WHERE lower(username) LIKE $1 OR lower(firstname) LIKE $1 OR lower(lastname) LIKE $1";
     try {
-        const {rows} = await pg.query(query, Object.keys(params).map((key) => `%${params[key]}%`));
+        const {rows} = await pg.query(query, [`%${queryItem.toLocaleLowerCase()}%`]);
         return rows;
     } catch (err) {
         return {error: err};

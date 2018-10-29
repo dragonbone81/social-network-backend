@@ -14,8 +14,15 @@ router.get('/user/info', checkJWT, async (req, res) => {
     }
 });
 
-router.get('/users', async (req, res) => {
-    res.send(await pg.get_users(req.query))
+// router.get('/users', async (req, res) => {
+//     res.send(await pg.get_users(req.query))
+// });
+
+router.get('/users', checkJWT, async (req, res) => {
+    if (!req.query.queryItem) {
+        res.json({error: 'query not provided'})
+    }
+    res.json(await pg.get_users(req.query.queryItem))
 });
 
 module.exports = router;
