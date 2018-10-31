@@ -1,6 +1,6 @@
 const pg = require('./database_connection');
 
-pg.connect();
+// pg.connect(); //I don't think this is needed, idk
 
 const create_user = async (user) => {
     try {
@@ -35,6 +35,56 @@ const create_chat = async (chatName) => {
     }
 };
 
+const add_user_to_group = async (username, group_id) => {
+    try {
+        await pg.query('INSERT INTO user_group VALUES ($1, $2)',
+            [username, group_id]);
+        return ({success: "user added to group"})
+    } catch (err) {
+        return {error: err};
+    }
+};
+const create_post = async (group_id, username, text) => {
+    //check if user in group
+    try {
+        const userCheck = await pg.query('SELECT group_id FROM user_group WHERE group_id=$1 AND username=$2',
+            [group_id, username]);
+        if (userCheck.rows.length !== 1) {
+            return {error: 'user_not_in_group'};
+        }
+        const {rows} = await pg.query('INSERT INTO post (group_id, username, text) VALUES ($1, $2, $3) RETURNING post_id',
+            [group_id, username, text]);
+        return ({success: "post_created", post_id: rows[0].post_id})
+    } catch (err) {
+        return {error: err};
+    }
+};
+const create_like = async (group_id, post_id, username) => {
+    //check if user in group
+    try {
+        const userCheck = await pg.query('SELECT group_id FROM user_group WHERE group_id=$1 AND username=$2',
+            [group_id, username]);
+        if (userCheck.rows.length !== 1) {
+            return {error: 'user_not_in_group'};
+        }
+        const {rows} = await pg.query('INSERT INTO like (post_id, username) VALUES ($1, $2) RETURNING like_id',
+            [post_id, username]);
+        return ({success: "like_created", like_id: rows[0].like_id})
+    } catch (err) {
+        return {error: err};
+    }
+};
+
+const create_group = async (groupName) => {
+    try {
+        const {rows} = await pg.query('INSERT INTO group (group_name) VALUES ($1) RETURNING group_id',
+            [groupName]);
+        return ({success: "group_created", group_id: rows[0].group_id})
+    } catch (err) {
+        return {error: err};
+    }
+};
+
 const add_user_to_chat = async (username, chat_id) => {
     try {
         await pg.query('INSERT INTO user_chat VALUES ($1, $2)',
@@ -55,6 +105,16 @@ const get_chats_for_user = async (username) => {
     }
 };
 
+const get_groups_for_user = async (username) => {
+    try {
+        const {rows} = await pg.query('SELECT group.group_id, group_name FROM group, user_group WHERE username=$1 AND user_group.group_id=group.group_id',
+            [username]);
+        return ({success: "groups for user", groups: rows})
+    } catch (err) {
+        return {error: err};
+    }
+};
+
 const get_users_in_chat = async (chat_id, username) => {
     try {
         const {rows} = await pg.query('SELECT username FROM user_chat WHERE chat_id=$1',
@@ -67,13 +127,54 @@ const get_users_in_chat = async (chat_id, username) => {
         return {error: err};
     }
 };
+const get_users_in_group = async (group_id, username) => {
+    try {
+        const {rows} = await pg.query('SELECT username FROM user_group WHERE group_id=$1',
+            [group_id]);
+        if (rows.find((el) => el.username === username))
+            return ({success: "users in group", users: rows});
+        else
+            return {error: 'user_not_in_group'};
+    } catch (err) {
+        return {error: err};
+    }
+};
+const get_posts_for_group = async (group_id, username) => {
+    // check the user is in the group
+    try {
+        const userCheck = await pg.query('SELECT group_id FROM user_group WHERE group_id=$1 AND username=$2',
+            [group_id, username]);
+        if (userCheck.rows.length !== 1) {
+            return {error: 'user_not_in_group'};
+        }
+        const {rows} = await pg.query('SELECT username, created_at, text, post_id FROM post WHERE group_id=$1',
+            [group_id]);
+        return ({success: "posts for group", posts: rows});
+    } catch (err) {
+        return {error: err};
+    }
+};
+const get_likes_for_post = async (post_id, group_id, username) => {
+    // check the user is in the group
+    try {
+        const userCheck = await pg.query('SELECT group_id FROM user_group WHERE group_id=$1 AND username=$2',
+            [group_id, username]);
+        if (userCheck.rows.length !== 1) {
+            return {error: 'user_not_in_group'};
+        }
+        const {rows} = await pg.query('SELECT username, like_id FROM like WHERE post_id=$1',
+            [post_id]);
+        return ({success: "likes for post", likes: rows});
+    } catch (err) {
+        return {error: err};
+    }
+};
 
 const get_messages_for_chat = async (chat_id, username) => {
     // check the user is in the chat
     try {
         const userCheck = await pg.query('SELECT chat_id FROM user_chat WHERE chat_id=$1 AND username=$2',
             [chat_id, username]);
-
         if (userCheck.rows.length !== 1) {
             return {error: 'user_not_in_chat'};
         }
@@ -102,42 +203,106 @@ const create_message = async (chat_id, username, text) => {
     }
 };
 
+const create_post_table = async () => {
+    try {
+        await pg.query('DROP TABLE IF EXISTS post');
+        await pg.query('CREATE TABLE post (' +
+            '    post_id     SERIAL PRIMARY KEY,' +
+            '    group_id    INT NOT NULL,' +
+            '    username    VARCHAR(40) NOT NULL,' +
+            '    text        TEXT,' +
+            '    created_at  TIMESTAMP DEFAULT NOW()' +
+            ');');
+    } catch (err) {
+        return {error: 'ERROR'}
+    }
+};
+const create_like_table = async () => {
+    try {
+        await pg.query('DROP TABLE IF EXISTS like');
+        await pg.query('CREATE TABLE like (' +
+            '    like_id     SERIAL PRIMARY KEY,' +
+            '    post_id     INT NOT NULL,' +
+            '    username    VARCHAR(40) NOT NULL' +
+            ');');
+    } catch (err) {
+        return {error: 'ERROR'}
+    }
+};
+const create_group_table = async () => {
+    try {
+        await pg.query('DROP TABLE IF EXISTS group');
+        await pg.query('CREATE TABLE group (' +
+            '    group_id     SERIAL PRIMARY KEY,' +
+            '    group_name   VARCHAR(60)' +
+            ');');
+    } catch (err) {
+        return {error: 'ERROR'}
+    }
+};
+const create_UserGroup_table = async () => {
+    try {
+        await pg.query('DROP TABLE IF EXISTS user_group');
+        await pg.query('CREATE TABLE user_group (' +
+            '    username    VARCHAR(40) NOT NULL,' +
+            '    group_id     INT NOT NULL,' +
+            '    PRIMARY KEY (chat_id, username)' +
+            ');');
+    } catch (err) {
+        return {error: 'ERROR'}
+    }
+};
 const create_user_table = async () => {
-    await pg.query('DROP TABLE IF EXISTS app_user');
-    await pg.query('CREATE TABLE app_user (' +
-        '    username    VARCHAR(40) PRIMARY KEY,' +
-        '    password    CHAR(60) NOT NULL,' +
-        '    firstname   VARCHAR(30),' +
-        '    lastname    VARCHAR(30),' +
-        '    email       VARCHAR(40),' +
-        '    created_at  TIMESTAMP DEFAULT NOW()' +
-        ');');
+    try {
+        await pg.query('DROP TABLE IF EXISTS app_user');
+        await pg.query('CREATE TABLE app_user (' +
+            '    username    VARCHAR(40) PRIMARY KEY,' +
+            '    password    CHAR(60) NOT NULL,' +
+            '    firstname   VARCHAR(30),' +
+            '    lastname    VARCHAR(30),' +
+            '    email       VARCHAR(40),' +
+            '    created_at  TIMESTAMP DEFAULT NOW()' +
+            ');');
+    } catch (err) {
+        return {error: 'ERROR'}
+    }
 };
 const create_UserChat_table = async () => {
-    await pg.query('DROP TABLE IF EXISTS user_chat');
-    await pg.query('CREATE TABLE user_chat (' +
-        '    username    VARCHAR(40) NOT NULL,' +
-        '    chat_id     INT NOT NULL,' +
-        '    PRIMARY KEY (chat_id, username)' +
-        ');');
+    try {
+        await pg.query('DROP TABLE IF EXISTS user_chat');
+        await pg.query('CREATE TABLE user_chat (' +
+            '    username    VARCHAR(40) NOT NULL,' +
+            '    chat_id     INT NOT NULL,' +
+            '    PRIMARY KEY (chat_id, username)' +
+            ');');
+    } catch (err) {
+        return {error: 'ERROR'}
+    }
 };
 const create_message_table = async () => {
-    await pg.query('DROP TABLE IF EXISTS message');
-    await pg.query('CREATE TABLE message (' +
-        '    username    VARCHAR(40) NOT NULL,' +
-        '    chat_id     INT NOT NULL,' +
-        '    message_id  SERIAL,' +
-        '    text        TEXT,' +
-        '    created_at  TIMESTAMP DEFAULT NOW(),' +
-        '    PRIMARY KEY (username, chat_id, message_id)' +
-        ');');
+    try {
+        await pg.query('DROP TABLE IF EXISTS message');
+        await pg.query('CREATE TABLE message (' +
+            '    username    VARCHAR(40) NOT NULL,' +
+            '    chat_id     INT NOT NULL,' +
+            '    message_id  SERIAL PRIMARY KEY,' +
+            '    text        TEXT,' +
+            '    created_at  TIMESTAMP DEFAULT NOW()' +
+            ');');
+    } catch (err) {
+        return {error: 'ERROR'}
+    }
 };
 const create_chat_table = async () => {
-    await pg.query('DROP TABLE IF EXISTS chat');
-    await pg.query('CREATE TABLE chat (' +
-        '    chat_id     SERIAL PRIMARY KEY,' +
-        '    chat_name   VARCHAR(60)' +
-        ');');
+    try {
+        await pg.query('DROP TABLE IF EXISTS chat');
+        await pg.query('CREATE TABLE chat (' +
+            '    chat_id     SERIAL PRIMARY KEY,' +
+            '    chat_name   VARCHAR(60)' +
+            ');');
+    } catch (err) {
+        return {error: 'ERROR'}
+    }
 };
 const get_user_with_password = async (username) => {
     const query = "SELECT username, email, firstname, lastname, password FROM app_user WHERE username=$1";
@@ -177,11 +342,16 @@ const get_users = async (queryItem) => {
 
 module.exports.create_user = create_user;
 module.exports.create_chat = create_chat;
+module.exports.create_group = create_group;
 module.exports.add_user_to_chat = add_user_to_chat;
 module.exports.create_user_table = create_user_table;
 module.exports.create_UserChat_table = create_UserChat_table;
 module.exports.create_chat_table = create_chat_table;
 module.exports.create_message_table = create_message_table;
+module.exports.create_post_table = create_post_table;
+module.exports.create_like_table = create_like_table;
+module.exports.create_group_table = create_group_table;
+module.exports.create_UserGroup_table = create_UserGroup_table;
 module.exports.create_message = create_message;
 module.exports.get_messages_for_chat = get_messages_for_chat;
 module.exports.get_users = get_users;
@@ -190,3 +360,11 @@ module.exports.get_user = get_user;
 module.exports.get_chats_for_user = get_chats_for_user;
 module.exports.get_users_in_chat = get_users_in_chat;
 module.exports.check_for_users = check_for_users;
+module.exports.add_user_to_group = add_user_to_group;
+module.exports.create_group = create_group;
+module.exports.get_posts_for_group = get_posts_for_group;
+module.exports.get_users_in_group = get_users_in_group;
+module.exports.get_groups_for_user = get_groups_for_user;
+module.exports.create_like = create_like;
+module.exports.get_likes_for_post = get_likes_for_post;
+module.exports.create_post = create_post;
