@@ -13,10 +13,6 @@ app.use(morgan('short'));
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 app.use(cors());
-// app.use((req, res, next) => {
-//     res.locals.pg = pg;
-//     next();
-// });
 app.use(userRoutes);
 app.use(authRoutes);
 app.use(chatRoutes);
@@ -38,10 +34,10 @@ app.get('/', async (req, res) => {
     // pg.create_chat_table();
     // pg.create_UserChat_table();
     // pg.create_user_table();
-    // pg.create_post_table();
-    // pg.create_like_table();
-    // pg.create_group_table();
-    // pg.create_UserGroup_table();
+    // await pg.create_post_table();
+    // console.log(await pg.create_like_table());
+    // console.log(await pg.create_group_table());
+    // console.log(await pg.create_UserGroup_table());
     res.send({hello: 'hi'})
 });
 

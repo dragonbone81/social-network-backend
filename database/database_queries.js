@@ -67,7 +67,7 @@ const create_like = async (group_id, post_id, username) => {
         if (userCheck.rows.length !== 1) {
             return {error: 'user_not_in_group'};
         }
-        const {rows} = await pg.query('INSERT INTO like (post_id, username) VALUES ($1, $2) RETURNING like_id',
+        const {rows} = await pg.query('INSERT INTO app_like (post_id, username) VALUES ($1, $2) RETURNING like_id',
             [post_id, username]);
         return ({success: "like_created", like_id: rows[0].like_id})
     } catch (err) {
@@ -77,7 +77,7 @@ const create_like = async (group_id, post_id, username) => {
 
 const create_group = async (groupName) => {
     try {
-        const {rows} = await pg.query('INSERT INTO group (group_name) VALUES ($1) RETURNING group_id',
+        const {rows} = await pg.query('INSERT INTO app_group (group_name) VALUES ($1) RETURNING group_id',
             [groupName]);
         return ({success: "group_created", group_id: rows[0].group_id})
     } catch (err) {
@@ -107,7 +107,7 @@ const get_chats_for_user = async (username) => {
 
 const get_groups_for_user = async (username) => {
     try {
-        const {rows} = await pg.query('SELECT group.group_id, group_name FROM group, user_group WHERE username=$1 AND user_group.group_id=group.group_id',
+        const {rows} = await pg.query('SELECT app_group.group_id, group_name FROM app_group, user_group WHERE username=$1 AND user_group.group_id=app_group.group_id',
             [username]);
         return ({success: "groups for user", groups: rows})
     } catch (err) {
@@ -162,7 +162,7 @@ const get_likes_for_post = async (post_id, group_id, username) => {
         if (userCheck.rows.length !== 1) {
             return {error: 'user_not_in_group'};
         }
-        const {rows} = await pg.query('SELECT username, like_id FROM like WHERE post_id=$1',
+        const {rows} = await pg.query('SELECT username, like_id FROM app_like WHERE post_id=$1',
             [post_id]);
         return ({success: "likes for post", likes: rows});
     } catch (err) {
@@ -214,30 +214,30 @@ const create_post_table = async () => {
             '    created_at  TIMESTAMP DEFAULT NOW()' +
             ');');
     } catch (err) {
-        return {error: 'ERROR'}
+        return {error: err}
     }
 };
 const create_like_table = async () => {
     try {
-        await pg.query('DROP TABLE IF EXISTS like');
-        await pg.query('CREATE TABLE like (' +
+        await pg.query('DROP TABLE IF EXISTS app_like');
+        await pg.query('CREATE TABLE app_like (' +
             '    like_id     SERIAL PRIMARY KEY,' +
             '    post_id     INT NOT NULL,' +
             '    username    VARCHAR(40) NOT NULL' +
             ');');
     } catch (err) {
-        return {error: 'ERROR'}
+        return {error: err}
     }
 };
 const create_group_table = async () => {
     try {
-        await pg.query('DROP TABLE IF EXISTS group');
-        await pg.query('CREATE TABLE group (' +
+        await pg.query('DROP TABLE IF EXISTS app_group');
+        await pg.query('CREATE TABLE app_group (' +
             '    group_id     SERIAL PRIMARY KEY,' +
             '    group_name   VARCHAR(60)' +
             ');');
     } catch (err) {
-        return {error: 'ERROR'}
+        return {error: err}
     }
 };
 const create_UserGroup_table = async () => {
@@ -246,10 +246,10 @@ const create_UserGroup_table = async () => {
         await pg.query('CREATE TABLE user_group (' +
             '    username    VARCHAR(40) NOT NULL,' +
             '    group_id     INT NOT NULL,' +
-            '    PRIMARY KEY (chat_id, username)' +
+            '    PRIMARY KEY (group_id, username)' +
             ');');
     } catch (err) {
-        return {error: 'ERROR'}
+        return {error: err}
     }
 };
 const create_user_table = async () => {
@@ -264,7 +264,7 @@ const create_user_table = async () => {
             '    created_at  TIMESTAMP DEFAULT NOW()' +
             ');');
     } catch (err) {
-        return {error: 'ERROR'}
+        return {error: err}
     }
 };
 const create_UserChat_table = async () => {
@@ -276,7 +276,7 @@ const create_UserChat_table = async () => {
             '    PRIMARY KEY (chat_id, username)' +
             ');');
     } catch (err) {
-        return {error: 'ERROR'}
+        return {error: err}
     }
 };
 const create_message_table = async () => {
@@ -290,7 +290,7 @@ const create_message_table = async () => {
             '    created_at  TIMESTAMP DEFAULT NOW()' +
             ');');
     } catch (err) {
-        return {error: 'ERROR'}
+        return {error: err}
     }
 };
 const create_chat_table = async () => {
@@ -301,7 +301,7 @@ const create_chat_table = async () => {
             '    chat_name   VARCHAR(60)' +
             ');');
     } catch (err) {
-        return {error: 'ERROR'}
+        return {error: err}
     }
 };
 const get_user_with_password = async (username) => {
