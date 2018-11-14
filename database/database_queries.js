@@ -39,7 +39,7 @@ const create_chat = async (chatName) => {
             [chatName]);
         return ({success: "chat_created", chat_id: rows[0].chat_id})
     } catch (err) {
-        return {error: err};
+        throw {error: err};
     }
 };
 
@@ -99,7 +99,7 @@ const add_user_to_chat = async (username, chat_id) => {
             [username, chat_id]);
         return {success: "user added to chat"}
     } catch (err) {
-        throw({error: err});
+        throw {error: err};
     }
 };
 
@@ -109,7 +109,7 @@ const get_chats_for_user = async (username) => {
             [username]);
         return ({success: "chats for user", chats: rows})
     } catch (err) {
-        return {error: err};
+        throw {error: err};
     }
 };
 
@@ -125,14 +125,12 @@ const get_groups_for_user = async (username) => {
 
 const get_users_in_chat = async (chat_id, username) => {
     try {
+        await check_if_user_in_chat(chat_id, username);
         const {rows} = await (await client).query('SELECT username FROM user_chat WHERE chat_id=$1',
             [chat_id]);
-        if (rows.find((el) => el.username === username))
-            return ({success: "users in chat", users: rows});
-        else
-            return {error: 'user_not_in_chat'};
+        return ({success: "users in chat", users: rows});
     } catch (err) {
-        return {error: err};
+        throw {error: err};
     }
 };
 const get_users_in_group = async (group_id, username) => {
@@ -181,33 +179,31 @@ const get_likes_for_post = async (post_id, group_id, username) => {
 const get_messages_for_chat = async (chat_id, username) => {
     // check the user is in the chat
     try {
-        const userCheck = await (await client).query('SELECT chat_id FROM user_chat WHERE chat_id=$1 AND username=$2',
-            [chat_id, username]);
-        if (userCheck.rows.length !== 1) {
-            return {error: 'user_not_in_chat'};
-        }
+        await check_if_user_in_chat(chat_id, username);
         const {rows} = await (await client).query('SELECT username, created_at, text, message_id FROM message WHERE chat_id=$1',
             [chat_id]);
         return ({success: "messages for chat", messages: rows});
     } catch (err) {
-        return {error: err};
+        throw {error: err};
     }
 };
 
+const check_if_user_in_chat = async (chat_id, username) => {
+    const userCheck = await (await client).query('SELECT chat_id FROM user_chat WHERE chat_id=$1 AND username=$2',
+        [chat_id, username]);
+    if (userCheck.rows.length !== 1) {
+        throw 'user_not_in_chat';
+    }
+};
 const create_message = async (chat_id, username, text) => {
     //check if user in chat
     try {
-        const userCheck = await (await client).query('SELECT chat_id FROM user_chat WHERE chat_id=$1 AND username=$2',
-            [chat_id, username]);
-
-        if (userCheck.rows.length !== 1) {
-            return {error: 'user_not_in_chat'};
-        }
+        await check_if_user_in_chat(chat_id, username);
         const {rows} = await (await client).query('INSERT INTO message (chat_id, username, text) VALUES ($1, $2, $3) RETURNING message_id',
             [chat_id, username, text]);
         return ({success: "message_created", message_id: rows[0].message_id})
     } catch (err) {
-        return {error: err};
+        throw {error: err};
     }
 };
 
