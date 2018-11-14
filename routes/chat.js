@@ -57,23 +57,25 @@ router.post('/chats/new', checkJWT, async (req, res) => {
     if (!req.body.chat_users.includes(req.username)) {
         req.body.chat_users.push(req.username);
     }
-    const dbUserCheck = await pg.check_for_users(req.body.chat_users);
-    if (dbUserCheck.success) {
-        const dbCreateChat = await pg.create_chat(req.body.chat_name);
-        if (dbCreateChat.success) {
-            const promises = [];
-            req.body.chat_users.forEach((username) => {
-                const promise = pg.add_user_to_chat(username, dbCreateChat.chat_id);
-                promises.push(promise);
-            });
+    await pg.create_transaction();
+    const dbCreateChat = await pg.create_chat(req.body.chat_name);
+    if (dbCreateChat.success) {
+        const promises = [];
+        req.body.chat_users.forEach((username) => {
+            promises.push(pg.add_user_to_chat(username, dbCreateChat.chat_id));
+        });
+        try {
             await Promise.all(promises);
+            await pg.commit_transaction();
             res.json({success: 'chat_created', chat_id: dbCreateChat.chat_id});
-            return;
+        } catch (err) {
+            await pg.rollback_transaction();
+            res.json({error: 'one of the users does not exist chat not created'});
         }
     } else {
-        res.json({error: 'users_do_not_exists', existing_users: dbUserCheck.existing_users})
+        await pg.rollback_transaction();
+        res.json({error: 'chat_not_created'});
     }
-    res.json({error: 'chat_not_created'});
 });
 
 module.exports = router;

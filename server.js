@@ -38,6 +38,12 @@ app.get('/', async (req, res) => {
     // console.log(await pg.create_like_table());
     // console.log(await pg.create_group_table());
     // console.log(await pg.create_UserGroup_table());
+    console.log(await pg.create_UserChat_table());
+    console.log(await pg.create_chat_table());
+    // console.log(await pg.create_group_table());
+    // console.log(await pg.create_UserGroup_table());
+    // console.log(await pg.create_user_table());
+    // console.log(await pg.create_message_table());
     res.send({hello: 'hi'})
 });
 
