@@ -199,9 +199,9 @@ const create_message = async (chat_id, username, text) => {
     //check if user in chat
     try {
         await check_if_user_in_chat(chat_id, username);
-        const {rows} = await (await client).query('INSERT INTO message (chat_id, username, text) VALUES ($1, $2, $3) RETURNING message_id',
+        const {rows} = await (await client).query('INSERT INTO message (chat_id, username, text) VALUES ($1, $2, $3) RETURNING message_id, created_at',
             [chat_id, username, text]);
-        return ({success: "message_created", message_id: rows[0].message_id})
+        return ({success: "message_created", message_id: rows[0].message_id, created_at: rows[0].created_at})
     } catch (err) {
         throw {error: err};
     }

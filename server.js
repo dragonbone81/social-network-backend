@@ -51,7 +51,7 @@ app.get('/', async (req, res) => {
 });
 
 io.on('connection', (socket) => {
-    console.log(io.sockets.sockets);
-    chatRoutesWS.chat_ws(socket);
+    // console.log(io.sockets.sockets);
+    chatRoutesWS.chat_ws(socket, io);
 });
 
