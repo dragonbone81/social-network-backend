@@ -4,12 +4,15 @@ const router = express.Router();
 const checkJWT = require('../middleware/checkJWT');
 
 router.get('/user/info', checkJWT, async (req, res) => {
-    const dbLookupUser = await pg.get_user(req.username);
-    if (dbLookupUser.success) {
-        res.json(dbLookupUser.user);
-    } else {
-        res.status(400);
-        res.json(dbLookupUser);
+    try {
+        const dbLookupUser = await pg.get_user(req.username);
+        if (dbLookupUser.success) {
+            res.json(dbLookupUser.user);
+        } else {
+            res.json(dbLookupUser);
+        }
+    } catch (err) {
+        res.json(err);
     }
 });
 

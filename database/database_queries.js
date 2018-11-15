@@ -16,7 +16,7 @@ const create_user = async (user) => {
             [user.username, user.password, user.firstname, user.lastname, user.email]);
         return ({success: "user_created"})
     } catch (err) {
-        return {error: err};
+        throw {error: err};
     }
 };
 
@@ -309,9 +309,8 @@ const create_chat_table = async () => {
     }
 };
 const get_user_with_password = async (username) => {
-    const query = "SELECT username, email, firstname, lastname, password FROM app_user WHERE username=$1";
     try {
-        const {rows} = await (await client).query(query, [username]);
+        const {rows} = await (await client).query("SELECT username, email, firstname, lastname, password FROM app_user WHERE username=$1", [username]);
         if (rows.length === 1) {
             return {success: true, user: rows[0]};
         } else {
@@ -322,16 +321,15 @@ const get_user_with_password = async (username) => {
     }
 };
 const get_user = async (username) => {
-    const query = "SELECT username, firstname, lastname, email, created_at FROM app_user WHERE username=$1";
     try {
-        const {rows} = await (await client).query(query, [username]);
+        const {rows} = await (await client).query("SELECT username, firstname, lastname, email, created_at FROM app_user WHERE username=$1", [username]);
         if (rows.length === 1) {
             return {success: true, user: rows[0]};
         } else {
             return {error: 'no or more than 1 rows returned'};
         }
     } catch (err) {
-        return {error: err};
+        throw {error: err};
     }
 };
 const get_users = async (queryItem) => {
