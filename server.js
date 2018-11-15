@@ -3,11 +3,15 @@ const cors = require('cors');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const pg = require('./database/database_queries');
+const app = express();
 const userRoutes = require('./routes/user');
 const authRoutes = require('./routes/auth');
 const chatRoutes = require('./routes/chat');
-const app = express();
+const chatRoutesWS = require('./routes/chat_ws');
 const port = process.env.PORT || 3001;
+const server = app.listen(port, () => console.log("Server Started!"));
+const io = require('socket.io')(server);
+
 
 app.use(morgan('short'));
 app.use(bodyParser.urlencoded({extended: true}));
@@ -16,7 +20,6 @@ app.use(cors());
 app.use(userRoutes);
 app.use(authRoutes);
 app.use(chatRoutes);
-
 
 app.get('/', async (req, res) => {
     // pg.create_chat_table();
@@ -38,8 +41,8 @@ app.get('/', async (req, res) => {
     // console.log(await pg.create_like_table());
     // console.log(await pg.create_group_table());
     // console.log(await pg.create_UserGroup_table());
-    console.log(await pg.create_UserChat_table());
-    console.log(await pg.create_chat_table());
+    // console.log(await pg.create_UserChat_table());
+    // console.log(await pg.create_chat_table());
     // console.log(await pg.create_group_table());
     // console.log(await pg.create_UserGroup_table());
     // console.log(await pg.create_user_table());
@@ -47,4 +50,8 @@ app.get('/', async (req, res) => {
     res.send({hello: 'hi'})
 });
 
-app.listen(port, () => console.log("Server Started!"));
+io.on('connection', (socket) => {
+    console.log(io.sockets.sockets);
+    chatRoutesWS.chat_ws(socket);
+});
+
