@@ -26,7 +26,7 @@ router.get('/chats/messages/:chat_id', checkJWT, async (req, res) => {
 //adds a message to a chat
 router.post('/chats/message/:chat_id', checkJWT, async (req, res) => {
     try {
-        const dbMessagePost = await pg.create_message(req.params.chat_id, req.username, req.body.text);
+        const dbMessagePost = await pg.create_message(req.params.chat_id, req.username, req.body.text, req.body.type);
         res.json(dbMessagePost);
     } catch (err) {
         res.json(err);

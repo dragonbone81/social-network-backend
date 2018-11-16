@@ -180,7 +180,7 @@ const get_messages_for_chat = async (chat_id, username) => {
     // check the user is in the chat
     try {
         await check_if_user_in_chat(chat_id, username);
-        const {rows} = await (await client).query('SELECT username, created_at, text, message_id FROM message WHERE chat_id=$1',
+        const {rows} = await (await client).query('SELECT username, created_at, text, message_id, type FROM message WHERE chat_id=$1',
             [chat_id]);
         return ({success: "messages for chat", messages: rows});
     } catch (err) {
@@ -195,13 +195,18 @@ const check_if_user_in_chat = async (chat_id, username) => {
         throw 'user_not_in_chat';
     }
 };
-const create_message = async (chat_id, username, text) => {
+const create_message = async (chat_id, username, text, type) => {
     //check if user in chat
     try {
         await check_if_user_in_chat(chat_id, username);
-        const {rows} = await (await client).query('INSERT INTO message (chat_id, username, text) VALUES ($1, $2, $3) RETURNING message_id, created_at',
-            [chat_id, username, text]);
-        return ({success: "message_created", message_id: rows[0].message_id, created_at: rows[0].created_at})
+        const {rows} = await (await client).query('INSERT INTO message (chat_id, username, text, type) VALUES ($1, $2, $3, $4) RETURNING message_id, created_at',
+            [chat_id, username, text, type]);
+        return ({
+            success: "message_created",
+            message_id: rows[0].message_id,
+            created_at: rows[0].created_at,
+            type: type
+        })
     } catch (err) {
         throw {error: err};
     }
@@ -291,6 +296,7 @@ const create_message_table = async () => {
             '    chat_id     INT NOT NULL REFERENCES chat(chat_id) ON DELETE CASCADE,' +
             '    message_id  SERIAL PRIMARY KEY,' +
             '    text        TEXT,' +
+            '    type        VARCHAR(32),' +
             '    created_at  TIMESTAMP DEFAULT NOW()' +
             ');');
     } catch (err) {

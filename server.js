@@ -47,6 +47,7 @@ app.get('/', async (req, res) => {
     // console.log(await pg.create_UserGroup_table());
     // console.log(await pg.create_user_table());
     // console.log(await pg.create_message_table());
+    // console.log(await pg.create_message_table());
     res.send({hello: 'hi'})
 });
 
