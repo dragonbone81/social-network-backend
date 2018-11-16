@@ -13,6 +13,7 @@ const chat_ws = (socket, io) => {
                     created_at: dbMessagePost.created_at,
                     text: input.text,
                     message_id: dbMessagePost.message_id,
+                    type: dbMessagePost.type,
                 },
                 chat_id: input.chat_id,
             });
