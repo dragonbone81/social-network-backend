@@ -73,6 +73,15 @@ router.post('/chats/new', checkJWT, async (req, res) => {
     }
 });
 
+router.post('/chats/delete/:chat_id', checkJWT, async (req, res) => {
+    try {
+        await pg.delete_chat(req.params.chat_id, req.username);
+        res.json({success: 'deleted chat'});
+    } catch (err) {
+        res.json(err);
+    }
+});
+
 //creates a new chat with the name and users
 router.post('/chats/edit/:chat_id', checkJWT, async (req, res) => {
     if (!req.body.chat_name || !req.body.chat_users) {
@@ -83,8 +92,11 @@ router.post('/chats/edit/:chat_id', checkJWT, async (req, res) => {
         req.body.chat_users.push(req.username);
     }
     try {
-        await pg.create_transaction();
         const currentUsers = (await pg.get_users_in_chat(req.params.chat_id, req.username)).users.map((user) => user.username);
+        if (!currentUsers.includes(req.username)) {
+            res.json({error: 'user not in chat'});
+            return;
+        }
         const deletedUsers = currentUsers.filter((user) => {
             if (!req.body.chat_users.includes(user)) {
                 return user;
@@ -95,6 +107,7 @@ router.post('/chats/edit/:chat_id', checkJWT, async (req, res) => {
                 return user;
             }
         });
+        await pg.create_transaction();
         const promises = [];
         newUsers.forEach((username) => {
             promises.push(pg.add_user_to_chat(username, req.params.chat_id));

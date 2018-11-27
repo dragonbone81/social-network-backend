@@ -43,6 +43,18 @@ const create_chat = async (chatName) => {
     }
 };
 
+const delete_chat = async (chatID, username) => {
+    try {
+        await check_if_user_in_chat(chatID, username);
+        await (await client).query('DELETE FROM chat WHERE chat_id=$1',
+            [chatID]);
+        return ({success: "chat_deleted"})
+    } catch (err) {
+        console.log(err);
+        throw {error: err};
+    }
+};
+
 const edit_chat_name = async (chatName, chatID) => {
     try {
         await (await client).query('UPDATE chat SET chat_name=$1 WHERE chat_id=$2',
@@ -370,6 +382,7 @@ const get_users = async (queryItem) => {
 
 module.exports.create_user = create_user;
 module.exports.create_chat = create_chat;
+module.exports.delete_chat = delete_chat;
 module.exports.edit_chat_name = edit_chat_name;
 module.exports.create_group = create_group;
 module.exports.add_user_to_chat = add_user_to_chat;
