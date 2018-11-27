@@ -46,7 +46,6 @@ router.get('/chats/users/:chat_id', checkJWT, async (req, res) => {
 //creates a new chat with the name and users
 router.post('/chats/new', checkJWT, async (req, res) => {
     if (!req.body.chat_name || !req.body.chat_users) {
-        res.status(400);
         res.json({error: 'invalid chat request'});
         return;
     }
@@ -71,6 +70,50 @@ router.post('/chats/new', checkJWT, async (req, res) => {
     } catch (err) {
         await pg.rollback_transaction();
         res.json({error: 'chat_not_created', db: err});
+    }
+});
+
+//creates a new chat with the name and users
+router.post('/chats/edit/:chat_id', checkJWT, async (req, res) => {
+    if (!req.body.chat_name || !req.body.chat_users) {
+        res.json({error: 'invalid chat request'});
+        return;
+    }
+    if (!req.body.chat_users.includes(req.username)) {
+        req.body.chat_users.push(req.username);
+    }
+    try {
+        await pg.create_transaction();
+        const currentUsers = (await pg.get_users_in_chat(req.params.chat_id, req.username)).users.map((user) => user.username);
+        const deletedUsers = currentUsers.filter((user) => {
+            if (!req.body.chat_users.includes(user)) {
+                return user;
+            }
+        });
+        const newUsers = req.body.chat_users.filter((user) => {
+            if (!currentUsers.includes(user)) {
+                return user;
+            }
+        });
+        const promises = [];
+        newUsers.forEach((username) => {
+            promises.push(pg.add_user_to_chat(username, req.params.chat_id));
+        });
+        deletedUsers.forEach((username) => {
+            promises.push(pg.remove_user_from_chat(username, req.params.chat_id));
+        });
+        promises.push(pg.edit_chat_name(req.body.chat_name, req.params.chat_id));
+        try {
+            await Promise.all(promises);
+            await pg.commit_transaction();
+            res.json({success: 'chat_edited'});
+        } catch (err) {
+            await pg.rollback_transaction();
+            res.json({error: 'something is wrong', db: err});
+        }
+    } catch (err) {
+        await pg.rollback_transaction();
+        res.json({error: 'chat_not_edited', db: err});
     }
 });
 
