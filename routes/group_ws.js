@@ -11,11 +11,11 @@ const group_ws = (socket, io) => {
                     username: socket.username,
                     created_at: dbWritePost.created_at,
                     text: input.text,
-                    message_id: dbWritePost.message_id,
+                    post_id: dbWritePost.post_id,
                 },
                 group_id: input.group_id,
             });
-            // console.log(dbMessagePost);
+            // console.log(dbWritePost);
         } catch (err) {
             console.log(err);
         }
