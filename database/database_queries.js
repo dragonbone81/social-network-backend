@@ -282,7 +282,7 @@ const create_post_table = async () => {
             '    group_id    INT NOT NULL,' +
             '    username    VARCHAR(40) NOT NULL,' +
             '    text        TEXT,' +
-            '    created_at  TIMESTAMP DEFAULT NOW()' +
+            '    created_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW()' +
             ');');
     } catch (err) {
         return {error: err}
@@ -333,7 +333,7 @@ const create_user_table = async () => {
             '    firstname   VARCHAR(30),' +
             '    lastname    VARCHAR(30),' +
             '    email       VARCHAR(40),' +
-            '    created_at  TIMESTAMP DEFAULT NOW()' +
+            '    created_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW()' +
             ');');
     } catch (err) {
         return {error: err}
@@ -360,7 +360,7 @@ const create_message_table = async () => {
             '    message_id  SERIAL PRIMARY KEY,' +
             '    text        TEXT,' +
             '    type        VARCHAR(32),' +
-            '    created_at  TIMESTAMP DEFAULT NOW()' +
+            '    created_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW()' +
             ');');
     } catch (err) {
         return {error: err}
