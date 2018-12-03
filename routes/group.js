@@ -64,10 +64,7 @@ router.get('/groups/:group_id', checkJWT, async (req,res) => {
 
 //add like to post
 router.post('/groups/posts/like/:group_id/:post_id', checkJWT, async (req, res) => {
-    if (!req.body.group_id || !req.body.username) {
-        res.json({error: 'invalid group request'});
-        return;
-    }
+
     try {
         const dbLikePost = await pg.create_like(req.params.group_id, req.params.post_id, req.username);
         res.json(dbLikePost);
@@ -78,10 +75,7 @@ router.post('/groups/posts/like/:group_id/:post_id', checkJWT, async (req, res) 
 
 //delete like on a post
 router.post('/groups/like/delete/:group_id/:post_id', checkJWT, async (req,res) => {
-    if (!req.body.group_id || !req.body.username) {
-        res.json({error: 'invalid group request'});
-        return;
-    }
+
    try {
        const dbDeleteLike = await pg.delete_like(req.params.group_id, req.params.post_id, req.username);
        res.json(dbDeleteLike);
@@ -92,7 +86,7 @@ router.post('/groups/like/delete/:group_id/:post_id', checkJWT, async (req,res) 
 
 //add post in group
 router.post('/groups/post/:group_id', checkJWT, async (req, res) => {
-    if (!req.body.group_id || !req.body.username) {
+    if (!req.body.text) {
         res.json({error: 'invalid group request'});
         return;
     }
