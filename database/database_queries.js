@@ -175,11 +175,13 @@ const get_groups_for_user = async (username) => {
 
 const get_posts_of_groups_for_user = async (username) => {
     try {
-        console.log('here');
-        const {rows} = await (await client).query('SELECT app_group.group_name, app_group.group_id, post_id, text, created_at, post.username FROM post, app_group, user_group WHERE user_group.username=$1 AND app_group.group_id = post.group_id AND user_group.group_id = app_group.group_id',
+        //console.log('here');
+        const {rows} = await (await client).query('SELECT app_group.group_name, app_group.group_id, post_id, text, post.created_at, app_user.username, app_user.firstname, app_user.lastname FROM post, app_group, user_group, app_user WHERE user_group.username=$1 AND app_group.group_id = post.group_id AND user_group.group_id = app_group.group_id AND app_user.username = post.username',
             [username]);
+        //console.log(rows);
         return({success: "user's group posts", posts: rows});
     } catch (err) {
+        console.log(err);
         return {error: err};
     }
 };

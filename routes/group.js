@@ -75,8 +75,13 @@ router.post('/groups/like/delete/:group_id/:post_id', checkJWT, async (req,res) 
 
 //add post in group
 router.post('/groups/post/:group_id', checkJWT, async (req, res) => {
+    if (!req.body.group_id || !req.body.username) {
+        res.json({error: 'invalid group request'});
+        return;
+    }
+
     try {
-        const dbGroupPost = await pg.create_post(req.params.group_id, req.username, req.body.text, req.body.type);
+        const dbGroupPost = await pg.create_post(req.params.group_id, req.username, req.body.text);
         res.json(dbGroupPost);
     } catch (err) {
         res.json(err);
