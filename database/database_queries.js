@@ -175,10 +175,8 @@ const get_groups_for_user = async (username) => {
 
 const get_posts_of_groups_for_user = async (username) => {
     try {
-        //console.log('here');
         const {rows} = await (await client).query('SELECT app_group.group_name, app_group.group_id, post_id, text, post.created_at, app_user.username, app_user.firstname, app_user.lastname FROM post, app_group, user_group, app_user WHERE user_group.username=$1 AND app_group.group_id = post.group_id AND user_group.group_id = app_group.group_id AND app_user.username = post.username',
             [username]);
-        //console.log(rows);
         return({success: "user's group posts", posts: rows});
     } catch (err) {
         console.log(err);
@@ -226,7 +224,7 @@ const get_posts_for_group = async (group_id, username) => {
         if (userCheck.rows.length !== 1) {
             return {error: 'user_not_in_group'};
         }
-        const {rows} = await (await client).query('SELECT username, created_at, text, post_id FROM post WHERE group_id=$1',
+        const {rows} = await (await client).query('SELECT post.username, app_user.firstname, app_user.lastname, post.created_at, post.text, post_id FROM post, app_user WHERE post.group_id=$1 AND app_user.username = post.username',
             [group_id]);
         return ({success: "posts for group", posts: rows});
     } catch (err) {
