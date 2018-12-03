@@ -62,6 +62,15 @@ router.get('/groups/:group_id', checkJWT, async (req,res) => {
     }
 });
 
+router.get('/user/:group_id', checkJWT, async (req,res) => {
+    try {
+        const dbGroupInfo = await pg.get_user_from_group(req.params.group_id, req.username);
+        res.json(dbGroupInfo.user_info);
+    } catch (err) {
+        res.json(err);
+    }
+});
+
 //add like to post
 router.post('/groups/posts/like/:group_id/:post_id', checkJWT, async (req, res) => {
 

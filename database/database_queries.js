@@ -97,6 +97,16 @@ const create_like = async (group_id, post_id, username) => {
     }
 };
 
+const get_user_from_group = async (group_id, username) => {
+    try {
+        const {rows} = await (await client).query('SELECT app_user.firstname, app_user.lastname FROM app_user, user_group WHERE user_group.group_id =$1 AND app_user.username = user_group.username AND user_group.username =$2',
+            [group_id, username]);
+        return ({success: "user info", user_info: rows[0]})
+    } catch (err) {
+        return {error: err};
+    }
+};
+
 const delete_like = async (group_id, post_id, username) => {
     //check if user in group
     try {
@@ -442,3 +452,4 @@ module.exports.delete_like = delete_like;
 module.exports.get_posts_of_groups_for_user = get_posts_of_groups_for_user;
 module.exports.get_group_info = get_group_info;
 module.exports.check_if_user_in_group = check_if_user_in_group;
+module.exports.get_user_from_group = get_user_from_group;
