@@ -97,6 +97,7 @@ const create_like = async (group_id, post_id, username) => {
     }
 };
 
+//get first and last name for group_ws
 const get_user_from_group = async (group_id, username) => {
     try {
         const {rows} = await (await client).query('SELECT app_user.firstname, app_user.lastname FROM app_user, user_group WHERE user_group.group_id =$1 AND app_user.username = user_group.username AND user_group.username =$2',
