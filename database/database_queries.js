@@ -78,9 +78,9 @@ const create_post = async (group_id, username, text) => {
     //check if user in group
     try {
        await check_if_user_in_group(group_id, username);
-        const {rows} = await (await client).query('INSERT INTO post (group_id, username, text) VALUES ($1, $2, $3) RETURNING post_id',
+        const {rows} = await (await client).query('INSERT INTO post (group_id, username, text) VALUES ($1, $2, $3) RETURNING post_id, created_at',
             [group_id, username, text]);
-        return ({success: "post_created", post_id: rows[0].post_id})
+        return ({success: "post_created", post: rows[0]})
     } catch (err) {
         return {error: err};
     }
