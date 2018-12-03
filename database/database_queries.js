@@ -190,7 +190,7 @@ const get_group_info = async(group_id) => {
     try{
         const{rows} = await(await client).query('SELECT group_id, group_name FROM app_group WHERE group_id =$1',
             [group_id]);
-        return({success: "group info", info: rows});
+        return({success: "group info", info: rows[0]});
     } catch (err) {
         return {error: err};
     }
