@@ -72,15 +72,32 @@ const create_like = async (group_id, post_id, username) => {
     try {
         const userCheck = await (await client).query('SELECT group_id FROM user_group WHERE group_id=$1 AND username=$2',
             [group_id, username]);
+        //console.log(userCheck);
         if (userCheck.rows.length !== 1) {
             return {error: 'user_not_in_group'};
         }
+
         const {rows} = await (await client).query('INSERT INTO app_like (post_id, username) VALUES ($1, $2) RETURNING like_id',
             [post_id, username]);
         return ({success: "like_created", like_id: rows[0].like_id})
     } catch (err) {
         return {error: err};
     }
+};
+
+const delete_like = async (group_id, post_id, username) => {
+  //check if user in group
+  try{
+      const userCheck = await (await client).query('SELECT group_id FROM user_group WHERE group_id=$1 AND username=$2',
+          [group_id,username]);
+      if (userCheck.rows.length !== 1){
+          return {error: 'user_not_in_group'};
+      }
+
+      const {rows} = await (await client).query('DELETE FROM app_like WHERE ')
+  }  catch(err) {
+      return{error: err};
+  }
 };
 
 const create_group = async (groupName) => {
@@ -165,6 +182,7 @@ const get_likes_for_post = async (post_id, group_id, username) => {
     try {
         const userCheck = await (await client).query('SELECT group_id FROM user_group WHERE group_id=$1 AND username=$2',
             [group_id, username]);
+        //console.log(userCheck);
         if (userCheck.rows.length !== 1) {
             return {error: 'user_not_in_group'};
         }
@@ -233,6 +251,7 @@ const create_like_table = async () => {
             '    like_id     SERIAL PRIMARY KEY,' +
             '    post_id     INT NOT NULL,' +
             '    username    VARCHAR(40) NOT NULL' +
+            '    UNIQUE(post_id, username),' +
             ');');
     } catch (err) {
         return {error: err}
@@ -379,3 +398,4 @@ module.exports.create_post = create_post;
 module.exports.create_transaction = create_transaction;
 module.exports.commit_transaction = commit_transaction;
 module.exports.rollback_transaction = rollback_transaction;
+module.exports.delete_like = delete_like;

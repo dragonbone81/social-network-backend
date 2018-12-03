@@ -8,6 +8,7 @@ const userRoutes = require('./routes/user');
 const authRoutes = require('./routes/auth');
 const chatRoutes = require('./routes/chat');
 const chatRoutesWS = require('./routes/chat_ws');
+const groupRoutes = require('./routes/group');
 const port = process.env.PORT || 3001;
 const server = app.listen(port, () => console.log("Server Started!"));
 const io = require('socket.io')(server);
@@ -20,6 +21,7 @@ app.use(cors());
 app.use(userRoutes);
 app.use(authRoutes);
 app.use(chatRoutes);
+app.use(groupRoutes);
 
 app.get('/', async (req, res) => {
     // pg.create_chat_table();
@@ -48,6 +50,10 @@ app.get('/', async (req, res) => {
     // console.log(await pg.create_user_table());
     // console.log(await pg.create_message_table());
     // console.log(await pg.create_message_table());
+    // pg.create_group();
+    // console.log(await pg.create_group());
+    //  pg.create_post();
+    // console.log(await pg.create_post());
     res.send({hello: 'hi'})
 });
 
