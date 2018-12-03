@@ -53,6 +53,9 @@ router.post('/post/like/:group_id/:post_id', checkJWT, async (req, res) => {
     }
 });
 
+//delete like on a post
+
+
 //add post in group
 router.post('/groups/post/:group_id', checkJWT, async (req, res) => {
     try {

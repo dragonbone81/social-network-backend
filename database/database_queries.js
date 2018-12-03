@@ -108,18 +108,19 @@ const create_like = async (group_id, post_id, username) => {
 };
 
 const delete_like = async (group_id, post_id, username) => {
-  //check if user in group
-  try{
-      const userCheck = await (await client).query('SELECT group_id FROM user_group WHERE group_id=$1 AND username=$2',
-          [group_id,username]);
-      if (userCheck.rows.length !== 1){
-          return {error: 'user_not_in_group'};
-      }
+    //check if user in group
+    try {
+        const userCheck = await (await client).query('SELECT group_id FROM user_group WHERE group_id=$1 AND username=$2',
+            [group_id, username]);
+        if (userCheck.rows.length !== 1) {
+            return {error: 'user_not_in_group'};
+        }
 
-      const {rows} = await (await client).query('DELETE FROM app_like WHERE ')
-  }  catch(err) {
-      return{error: err};
-  }
+        await (await client).query('DELETE FROM app_like WHERE like_id=$1,' [like_id]);
+        return ({success: "like_deleted"})
+    } catch (err) {
+        return {error: err};
+    }
 };
 
 const create_group = async (groupName) => {
@@ -282,8 +283,8 @@ const create_like_table = async () => {
         await (await client).query('CREATE TABLE app_like (' +
             '    like_id     SERIAL PRIMARY KEY,' +
             '    post_id     INT NOT NULL,' +
-            '    username    VARCHAR(40) NOT NULL' +
-            '    UNIQUE(post_id, username),' +
+            '    username    VARCHAR(40) NOT NULL,' +
+            '    UNIQUE      (post_id, username)' +
             ');');
     } catch (err) {
         return {error: err}
