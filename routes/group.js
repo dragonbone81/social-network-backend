@@ -27,7 +27,7 @@ router.get('/groups/user/allposts', checkJWT, async (req, res) => {
 router.get('/groups/posts/:group_id', checkJWT, async (req, res) => {
     try {
         const dbLookupPosts = await pg.get_posts_for_group(req.params.group_id, req.username);
-        res.json(dbLookupPosts);
+        res.json(dbLookupPosts.posts);
     } catch (err) {
         res.json(err);
     }
@@ -37,7 +37,7 @@ router.get('/groups/posts/:group_id', checkJWT, async (req, res) => {
 router.get('/groups/users/:group_id', checkJWT, async (req, res) => {
     try {
         const dbLookupUsers = await pg.get_users_in_group(req.params.group_id, req.username);
-        res.json(dbLookupUsers);
+        res.json(dbLookupUsers.users);
     } catch (err) {
         res.json(err);
     }
@@ -47,7 +47,7 @@ router.get('/groups/users/:group_id', checkJWT, async (req, res) => {
 router.get('/groups/posts/likes/:group_id/:post_id', checkJWT, async (req, res) => {
     try {
         const dbLookupLikes = await pg.get_likes_for_post(req.params.post_id, req.params.group_id, req.username);
-        res.json(dbLookupLikes);
+        res.json(dbLookupLikes.likes);
     } catch (err) {
         res.json(err);
     }
@@ -56,7 +56,7 @@ router.get('/groups/posts/likes/:group_id/:post_id', checkJWT, async (req, res) 
 router.get('/groups/:group_id', checkJWT, async (req,res) => {
     try {
         const dbGroupInfo = await pg.get_group_info(req.params.group_id);
-        res.json(dbGroupInfo);
+        res.json(dbGroupInfo.info);
     } catch (err) {
         res.json(err);
     }
