@@ -43,6 +43,28 @@ const create_chat = async (chatName) => {
     }
 };
 
+const delete_chat = async (chatID, username) => {
+    try {
+        await check_if_user_in_chat(chatID, username);
+        await (await client).query('DELETE FROM chat WHERE chat_id=$1',
+            [chatID]);
+        return ({success: "chat_deleted"})
+    } catch (err) {
+        console.log(err);
+        throw {error: err};
+    }
+};
+
+const edit_chat_name = async (chatName, chatID) => {
+    try {
+        await (await client).query('UPDATE chat SET chat_name=$1 WHERE chat_id=$2',
+            [chatName, chatID]);
+        return ({success: "chat_edited"})
+    } catch (err) {
+        throw {error: err};
+    }
+};
+
 const add_user_to_group = async (username, group_id) => {
     try {
         await (await client).query('INSERT INTO user_group VALUES ($1, $2)',
@@ -115,6 +137,16 @@ const add_user_to_chat = async (username, chat_id) => {
         await (await client).query('INSERT INTO user_chat VALUES ($1, $2)',
             [username, chat_id]);
         return {success: "user added to chat"}
+    } catch (err) {
+        throw {error: err};
+    }
+};
+
+const remove_user_from_chat = async (username, chat_id) => {
+    try {
+        await (await client).query('DELETE FROM user_chat WHERE username=$1 AND chat_id=$2',
+            [username, chat_id]);
+        return {success: "user removed from chat"}
     } catch (err) {
         throw {error: err};
     }
@@ -369,8 +401,11 @@ const get_users = async (queryItem) => {
 
 module.exports.create_user = create_user;
 module.exports.create_chat = create_chat;
+module.exports.delete_chat = delete_chat;
+module.exports.edit_chat_name = edit_chat_name;
 module.exports.create_group = create_group;
 module.exports.add_user_to_chat = add_user_to_chat;
+module.exports.remove_user_from_chat = remove_user_from_chat;
 module.exports.create_user_table = create_user_table;
 module.exports.create_UserChat_table = create_UserChat_table;
 module.exports.create_chat_table = create_chat_table;
