@@ -53,8 +53,21 @@ router.get('/groups/posts/likes/:group_id/:post_id', checkJWT, async (req, res) 
     }
 });
 
+router.get('/groups/:group_id', checkJWT, async (req,res) => {
+    try {
+        const dbGroupInfo = await pg.get_group_info(req.params.group_id);
+        res.json(dbGroupInfo);
+    } catch (err) {
+        res.json(err);
+    }
+});
+
 //add like to post
 router.post('/groups/posts/like/:group_id/:post_id', checkJWT, async (req, res) => {
+    if (!req.body.group_id || !req.body.username) {
+        res.json({error: 'invalid group request'});
+        return;
+    }
     try {
         const dbLikePost = await pg.create_like(req.params.group_id, req.params.post_id, req.username);
         res.json(dbLikePost);
@@ -65,6 +78,10 @@ router.post('/groups/posts/like/:group_id/:post_id', checkJWT, async (req, res) 
 
 //delete like on a post
 router.post('/groups/like/delete/:group_id/:post_id', checkJWT, async (req,res) => {
+    if (!req.body.group_id || !req.body.username) {
+        res.json({error: 'invalid group request'});
+        return;
+    }
    try {
        const dbDeleteLike = await pg.delete_like(req.params.group_id, req.params.post_id, req.username);
        res.json(dbDeleteLike);

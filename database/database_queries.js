@@ -186,6 +186,16 @@ const get_posts_of_groups_for_user = async (username) => {
     }
 };
 
+const get_group_info = async(group_id) => {
+    try{
+        const{rows} = await(await client).query('SELECT group_id, group_name FROM app_group WHERE group_id =$1',
+            [group_id]);
+        return({success: "group info", info: rows});
+    } catch (err) {
+        return {error: err};
+    }
+};
+
 const get_users_in_chat = async (chat_id, username) => {
     try {
         await check_if_user_in_chat(chat_id, username);
@@ -449,3 +459,4 @@ module.exports.commit_transaction = commit_transaction;
 module.exports.rollback_transaction = rollback_transaction;
 module.exports.delete_like = delete_like;
 module.exports.get_posts_of_groups_for_user = get_posts_of_groups_for_user;
+module.exports.get_group_info = get_group_info;
