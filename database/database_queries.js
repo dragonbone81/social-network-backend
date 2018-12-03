@@ -77,11 +77,7 @@ const add_user_to_group = async (username, group_id) => {
 const create_post = async (group_id, username, text) => {
     //check if user in group
     try {
-        const userCheck = await (await client).query('SELECT group_id FROM user_group WHERE group_id=$1 AND username=$2',
-            [group_id, username]);
-        if (userCheck.rows.length !== 1) {
-            return {error: 'user_not_in_group'};
-        }
+       await check_if_user_in_group(group_id, username);
         const {rows} = await (await client).query('INSERT INTO post (group_id, username, text) VALUES ($1, $2, $3) RETURNING post_id',
             [group_id, username, text]);
         return ({success: "post_created", post_id: rows[0].post_id})
@@ -92,13 +88,7 @@ const create_post = async (group_id, username, text) => {
 const create_like = async (group_id, post_id, username) => {
     //check if user in group
     try {
-        const userCheck = await (await client).query('SELECT group_id FROM user_group WHERE group_id=$1 AND username=$2',
-            [group_id, username]);
-        //console.log(userCheck);
-        if (userCheck.rows.length !== 1) {
-            return {error: 'user_not_in_group'};
-        }
-
+        await check_if_user_in_group(group_id, username);
         const {rows} = await (await client).query('INSERT INTO app_like (post_id, username) VALUES ($1, $2) RETURNING like_id',
             [post_id, username]);
         return ({success: "like_created", like_id: rows[0].like_id})
@@ -110,12 +100,7 @@ const create_like = async (group_id, post_id, username) => {
 const delete_like = async (group_id, post_id, username) => {
     //check if user in group
     try {
-        const userCheck = await (await client).query('SELECT group_id FROM user_group WHERE group_id=$1 AND username=$2',
-            [group_id, username]);
-        if (userCheck.rows.length !== 1) {
-            return {error: 'user_not_in_group'};
-        }
-
+        await check_if_user_in_group(group_id, username);
         await (await client).query('DELETE FROM app_like WHERE like_id=$1,' [like_id]);
         return ({success: "like_deleted"})
     } catch (err) {
@@ -217,13 +202,8 @@ const get_users_in_group = async (group_id, username) => {
     }
 };
 const get_posts_for_group = async (group_id, username) => {
-    // check the user is in the group
     try {
-        const userCheck = await (await client).query('SELECT group_id FROM user_group WHERE group_id=$1 AND username=$2',
-            [group_id, username]);
-        if (userCheck.rows.length !== 1) {
-            return {error: 'user_not_in_group'};
-        }
+        await check_if_user_in_group(group_id, username);
         const {rows} = await (await client).query('SELECT post.username, app_user.firstname, app_user.lastname, post.created_at, post.text, post_id FROM post, app_user WHERE post.group_id=$1 AND app_user.username = post.username',
             [group_id]);
         return ({success: "posts for group", posts: rows});
@@ -232,14 +212,8 @@ const get_posts_for_group = async (group_id, username) => {
     }
 };
 const get_likes_for_post = async (post_id, group_id, username) => {
-    // check the user is in the group
     try {
-        const userCheck = await (await client).query('SELECT group_id FROM user_group WHERE group_id=$1 AND username=$2',
-            [group_id, username]);
-        //console.log(userCheck);
-        if (userCheck.rows.length !== 1) {
-            return {error: 'user_not_in_group'};
-        }
+        await check_if_user_in_group(group_id, username);
         const {rows} = await (await client).query('SELECT username, like_id FROM app_like WHERE post_id=$1',
             [post_id]);
         return ({success: "likes for post", likes: rows});
@@ -267,6 +241,15 @@ const check_if_user_in_chat = async (chat_id, username) => {
         throw 'user_not_in_chat';
     }
 };
+
+const check_if_user_in_group = async (group_id, username) => {
+    const userCheck = await (await client).query('SELECT group_id FROM user_group WHERE group_id=$1 AND username=$2',
+        [group_id, username]);
+    if (userCheck.rows.length !== 1) {
+        throw 'user_not_in_group';
+    }
+};
+
 const create_message = async (chat_id, username, text, type) => {
     //check if user in chat
     try {
@@ -458,3 +441,4 @@ module.exports.rollback_transaction = rollback_transaction;
 module.exports.delete_like = delete_like;
 module.exports.get_posts_of_groups_for_user = get_posts_of_groups_for_user;
 module.exports.get_group_info = get_group_info;
+module.exports.check_if_user_in_group = check_if_user_in_group;
