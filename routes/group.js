@@ -14,7 +14,7 @@ router.get('/groups/user', checkJWT, async (req, res) => {
 });
 
 //get posts of all groups for one user
-router.get('/allposts/user', checkJWT, async (req, res) => {
+router.get('/groups/user/allposts', checkJWT, async (req, res) => {
    try {
        const dbGetAllGroupPosts = await pg.get_posts_of_groups_for_user(req.username);
        res.json(dbGetAllGroupPosts.posts);
@@ -44,7 +44,7 @@ router.get('/groups/users/:group_id', checkJWT, async (req, res) => {
 });
 
 //gets likes on a post
-router.get('/posts/likes/:group_id/:post_id', checkJWT, async (req, res) => {
+router.get('/groups/posts/likes/:group_id/:post_id', checkJWT, async (req, res) => {
     try {
         const dbLookupLikes = await pg.get_likes_for_post(req.params.post_id, req.params.group_id, req.username);
         res.json(dbLookupLikes);
@@ -54,7 +54,7 @@ router.get('/posts/likes/:group_id/:post_id', checkJWT, async (req, res) => {
 });
 
 //add like to post
-router.post('/post/like/:group_id/:post_id', checkJWT, async (req, res) => {
+router.post('/groups/posts/like/:group_id/:post_id', checkJWT, async (req, res) => {
     try {
         const dbLikePost = await pg.create_like(req.params.group_id, req.params.post_id, req.username);
         res.json(dbLikePost);
@@ -64,7 +64,7 @@ router.post('/post/like/:group_id/:post_id', checkJWT, async (req, res) => {
 });
 
 //delete like on a post
-router.post('/like/delete/:group_id/:post_id', checkJWT, async (req,res) => {
+router.post('/groups/like/delete/:group_id/:post_id', checkJWT, async (req,res) => {
    try {
        const dbDeleteLike = await pg.delete_like(req.params.group_id, req.params.post_id, req.username);
        res.json(dbDeleteLike);
