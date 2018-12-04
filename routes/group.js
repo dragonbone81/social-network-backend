@@ -23,6 +23,16 @@ router.get('/groups/user/allposts', checkJWT, async (req, res) => {
    }
 });
 
+//get posts of all groups for one user sorted
+router.get('/groups/user/sortedpost', checkJWT, async (req, res) => {
+    try {
+        const dbGetAllGroupPosts = await pg.get_posts_of_groups_for_user_sorted(req.username);
+        res.json(dbGetAllGroupPosts.posts);
+    }  catch (err) {
+        res.json(err);
+    }
+});
+
 //gets the posts of a group
 router.get('/groups/posts/:group_id', checkJWT, async (req, res) => {
     try {
@@ -103,6 +113,16 @@ router.post('/groups/post/:group_id', checkJWT, async (req, res) => {
     try {
         const dbGroupPost = await pg.create_post(req.params.group_id, req.username, req.body.text);
         res.json(dbGroupPost);
+    } catch (err) {
+        res.json(err);
+    }
+});
+
+//get num of likes on post
+router.get('/groups/numlikes/:group_id/:post_id', checkJWT, async (req, res) => {
+    try {
+        const dbNumLikes = await pg.get_num_likes_of_post(req.params.post_id);
+        res.json(dbNumLikes);
     } catch (err) {
         res.json(err);
     }

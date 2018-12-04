@@ -180,6 +180,19 @@ const get_posts_of_groups_for_user = async (username) => {
     }
 };
 
+const get_posts_of_groups_for_user_sorted = async (username) => {
+    try {
+        const {rows} = await (await client).query('' +
+            'SELECT (SELECT COUNT(*) FROM app_like WHERE app_like.post_id=post.post_id) AS likeCount, app_group.group_name, app_group.group_id, post.post_id, text, post.created_at, app_user.username, app_user.firstname, app_user.lastname FROM post, app_group, user_group, app_user WHERE user_group.username=$1 AND app_group.group_id = post.group_id AND user_group.group_id = app_group.group_id AND app_user.username = post.username ORDER BY likeCount DESC, post.created_at DESC',
+            [username]);
+        return({success: "user's group posts", posts: rows});
+    } catch (err) {
+        console.log(err);
+        return {error: err};
+    }
+};
+
+
 const get_group_info = async(group_id) => {
     try{
         const{rows} = await(await client).query('SELECT group_id, group_name FROM app_group WHERE group_id =$1',
@@ -228,6 +241,16 @@ const get_likes_for_post = async (post_id, group_id, username) => {
         const {rows} = await (await client).query('SELECT username, like_id FROM app_like WHERE post_id=$1',
             [post_id]);
         return ({success: "likes for post", likes: rows});
+    } catch (err) {
+        return {error: err};
+    }
+};
+
+const get_num_likes_of_post = async(post_id) => {
+    try {
+        const {rows} = await (await client).query('SELECT COUNT(like_id) FROM app_like WHERE post_id=$1',
+            [post_id]);
+        return ({success: "num of likes for post", likes: rows[0]});
     } catch (err) {
         return {error: err};
     }
@@ -454,3 +477,5 @@ module.exports.get_posts_of_groups_for_user = get_posts_of_groups_for_user;
 module.exports.get_group_info = get_group_info;
 module.exports.check_if_user_in_group = check_if_user_in_group;
 module.exports.get_user_from_group = get_user_from_group;
+module.exports.get_posts_of_groups_for_user_sorted = get_posts_of_groups_for_user_sorted;
+module.exports.get_num_likes_of_post = get_num_likes_of_post;
