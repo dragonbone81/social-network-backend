@@ -112,7 +112,7 @@ const delete_like = async (group_id, post_id, username) => {
     //check if user in group
     try {
         await check_if_user_in_group(group_id, username);
-        await (await client).query('DELETE FROM app_like WHERE like_id=$1,' [like_id]);
+        await (await client).query('DELETE FROM app_like WHERE post_id=$1 AND username =$2', [post_id, username]);
         return ({success: "like_deleted"})
     } catch (err) {
         return {error: err};
