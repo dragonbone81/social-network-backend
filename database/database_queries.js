@@ -265,7 +265,6 @@ const get_messages_for_chat = async (chat_id, username) => {
             [chat_id]);
         return ({success: "messages for chat", messages: rows});
     } catch (err) {
-        console.log(err);
         throw {error: err};
     }
 };
