@@ -260,8 +260,9 @@ const get_messages_for_chat = async (chat_id, username) => {
     // check the user is in the chat
     try {
         await check_if_user_in_chat(chat_id, username);
-        const {rows} = await (await client).query('SELECT username, created_at, text, message_id, type FROM message WHERE chat_id=$1',
-            [chat_id]);
+        const {rows} = await (await client).query('SELECT app_user.username, app_user.firstname, app_user.lastname, created_at, text, message_id, type FROM message, app_user WHERE chat_id=$1 ' +
+            'AND app_user.username=$2',
+            [chat_id, username]);
         return ({success: "messages for chat", messages: rows});
     } catch (err) {
         throw {error: err};

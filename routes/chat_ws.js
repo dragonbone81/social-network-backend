@@ -6,14 +6,15 @@ const chat_ws = (socket, io) => {
         try {
             const response = checkJWT(input.token);
             const dbMessagePost = await pg.create_message(input.chat_id, response.username, input.text, input.type);
+            const dbUser = await pg.get_user(socket.username);
             // console.log(dbMessagePost);
             socket.to(`chat_${input.chat_id}`).emit('message', {
                 message: {
-                    username: socket.username,
                     created_at: dbMessagePost.created_at,
                     text: input.text,
                     message_id: dbMessagePost.message_id,
                     type: dbMessagePost.type,
+                    ...dbUser.user,
                 },
                 chat_id: input.chat_id,
             });
@@ -47,10 +48,12 @@ const chat_ws = (socket, io) => {
     socket.on('chat_typing', async (input) => {
         try {
             const response = checkJWT(input.token);
+            const dbUser = await pg.get_user(socket.username);
             socket.to(`chat_${input.chat_id}`).emit('typing', {
                 isTyping: input.isTyping,
                 username: socket.username,
                 chat_id: input.chat_id,
+                ...dbUser.user,
             });
         } catch (err) {
             console.log(err);
